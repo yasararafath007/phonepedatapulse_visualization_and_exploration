@@ -146,17 +146,32 @@ if selected == "Top Charts":
                              color_continuous_scale=px.colors.sequential.Agsunset)
                 st.plotly_chart(fig,use_container_width=True)   
     
-        with col2:
+         with col2:
             st.markdown("### :violet[District]")
-        cursor.execute(f"SELECT state, SUM(RegisteredUser) as Total_Users, SUM(AppOpens) as Total_Appopens FROM map_user WHERE year = {Year} AND quarter = {Quarter} GROUP BY state ORDER BY state")
-        
-        # Rest of your code for col2...
-        
-    with col3:
-        st.markdown("### :violet[Pincode]")
-        cursor.execute(f"SELECT Pincode, SUM(RegisteredUsers) as Total_Users FROM top_user WHERE year = {Year} AND quarter = {Quarter} GROUP BY Pincode ORDER BY Total_Users DESC LIMIT 10")
-        
-        # Rest of your code for col3...
+            cursor.execute(f"select district, sum(RegisteredUser) as Total_Users, sum(AppOpens) as Total_Appopens from map_user where year = {Year} and quarter = {Quarter} group by district order by Total_Users desc limit 10")
+            df = pd.DataFrame(cursor.fetchall(), columns=['District', 'Total_Users','Total_Appopens'])
+            df.Total_Users = df.Total_Users.astype(float)
+            fig = px.bar(df,
+                         title='Top 10',
+                         x="Total_Users",
+                         y="District",
+                         orientation='h',
+                         color='Total_Users',
+                         color_continuous_scale=px.colors.sequential.Agsunset)
+            st.plotly_chart(fig,use_container_width=True)
+              
+        with col3:
+            st.markdown("### :violet[Pincode]")
+            cursor.execute(f"select Pincode, sum(RegisteredUsers) as Total_Users from top_user where year = {Year} and quarter = {Quarter} group by Pincode order by Total_Users desc limit 10")
+            df = pd.DataFrame(cursor.fetchall(), columns=['Pincode', 'Total_Users'])
+            fig = px.pie(df,
+                         values='Total_Users',
+                         names='Pincode',
+                         title='Top 10',
+                         color_discrete_sequence=px.colors.sequential.Agsunset,
+                         hover_data=['Total_Users'])
+            fig.update_traces(textposition='inside', textinfo='percent+label')
+            st.plotly_chart(fig,use_container_width=True)
         
     with col4:
         st.markdown("### :violet[State]")
